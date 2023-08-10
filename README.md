@@ -1,3 +1,3 @@
 # Sudoku Solver
 
-This is the boilerplate for the Sudoku Solver project. Instructions to complete your project can be found at https://www.freecodecamp.org/learn/quality-assurance/quality-assurance-projects/sudoku-solver
+This is a sudoku solver. It is a software application that solves any sudoku. I developed it with the help of javaScript (node.js) as the main backend framework and I used HTML and CSS as the frontend frameworks.
