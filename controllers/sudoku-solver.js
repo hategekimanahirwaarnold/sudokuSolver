@@ -6,17 +6,13 @@ let numberToString = { 1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E', 6: 'F', 7: 'G', 8
 
 function rowResult(puzzleString, row, column, value) {
   let numberRow = translateString[row][0];
-  // console.log("numberRow: ", numberRow);
   let wholeRow = puzzleString.split("").reduce((array, item, index) => {
     if (Math.ceil((index + 1) / 9) === numberRow) {
       array.push(item);
     };
     return array
   }, []);
-  // console.log("filtered numbers for row: ", wholeRow);
-  // console.log("finding the inboard using wholerow.column", wholeRow[column-1])
   if (wholeRow[column - 1] === value) {
-    // console.log("the value is equal to the one given in the board");
     return {
       response: true,
       region: wholeRow,
@@ -30,36 +26,20 @@ function rowResult(puzzleString, row, column, value) {
       }
       return item === value
     });
-    //  console.log("checkRowPlacement response:", response, "value: ", value, "problem: ", problem);
 
     return {
       response: !response,
       region: wholeRow
     }
   }
-
-  // 1 get the value whose row and column are sent
-  // 2 get all values of the same row from the board
-  // check if the value from 1 is not in 2
-  // if it is there return false send the row error message
-  // if it is not there return true
-
 }
 function columnResult(puzzleString, row, column, value) {
-  // 1 get the value whose row and column are sent
-  // 2 get all values of the same row from the board
-  // check if the value from 1 is not in 2
-  // if it is there return false send the row error message
-  // if it is not there return true
-
-
   let wholeColumn = puzzleString.split("").reduce((array, item, index) => {
     if ((index + 1) % 9 === column || ((index + 1) % 9 === 0 && column === 9)) {
       array.push(item);
     };
     return array
   }, []);
-  // console.log("filtered columns: ", wholeColumn);
   let problem = [];
   let response = wholeColumn.some(item => {
     if (item === value) {
@@ -67,7 +47,6 @@ function columnResult(puzzleString, row, column, value) {
     }
     return item === value
   });
-  // console.log("checkColumn Placement response:", response, "value: ", value, "problem: ", problem);
 
   return {
     response: !response,
@@ -94,7 +73,6 @@ function regionResult(puzzleString, row, column, value) {
     }
     return array;
   }, []);
-  //  console.log("filtered region: ", regionSection);
   let problem = [];
   let response = regionSection.some(item => {
     if (item === value) {
@@ -102,7 +80,6 @@ function regionResult(puzzleString, row, column, value) {
     }
     return item === value
   });
-  //  console.log("Region response:", response, "value: ", value, "problem: ", problem);
 
   return {
     response: !response,
@@ -154,72 +131,61 @@ class SudokuSolver {
   checkRegionPlacement(puzzleString, row, column, value) {
     return regionResult(puzzleString, row, column, value);
   }
-
+  /** 
+   *  A method for solving sudoku 
+   *  @puzzleString: A string to be solved
+   * */
   solve(puzzleString) {
+    // Check if sudoku have 81 positions which include numbers or `.` for empty slots
     if (this.validate(puzzleString)[0] === true) {
-      //if it can be solved send the solution
-      // a recurrent relation and analyze an input at a particular index one by one
-      // if an input is a number and has a valid position return the puzzleString with nothing changed
-      // if an input is not a number, loop over some posible numbers that could be in that position and pick the first one that holds
-      // if you find a number that holds replace the position of the puzzle with that particular number
-      // if you don't find a number which holds return an error message that the puzzle can't be solved.
       let options = [];
+      // A recursive function which solves sudoku
       function puzzleRecursion(res, index, currentArr) {
-        // console.log("experimental puzzle", res, "index: ", index, "currentArr: ", currentArr);
+        // if puzzle failed on the last index
         if (res.error) {
-          // console.log("Puzzle cannot be solved", index, "current array: ", currentArr)
-          //move back and try other cases
+          //sort all availabe options in descending order
           let lastFirst = options.sort((a, b) => b[0] - a[0]);
-          // check the status of the first elt
           let bool = true;
+
+          //move back and try other cases
           let nextOpt = lastFirst.reduce((obj, ite, ind) => {
             if (ite[1].status < (ite[1].opt.length - 1) && bool) {
               bool = false
               ite[1].status++;
               obj = ite;
-              // all opt.status whose index is greater than ind should be returned to zero
+              // all opt.status whose index is greater than current cell id, should be returned to zero
               let tobeUsed = options.slice();
-              let newOpt = tobeUsed.filter(iteme => iteme[0] <= ite[0]);
-              // console.log("tobe used", tobeUsed, "newOpto", newOpt, "index: ", ite[0]);
+              let newOpt = tobeUsed.filter(iteme => iteme[0] <= ite[0]); //only consider options whose index is less than or equal to the current index
               options = newOpt;
             };
-            return obj
+            return obj;
           }, []);
           if (nextOpt[1]) {
-            // console.log("next opt: ", nextOpt);
-            // console.log("new Options: ", options);
             return puzzleRecursion(nextOpt[1].string, nextOpt[0], []);
 
           } else {
             return { error: 'Puzzle cannot be solved' }
           }
-          //if it is greater than the length of opt move to the next elt
-          // if it is less than opt.length increase status and return  puzzleRecursion
-          // if all status are == to their opt.length, return error: puzzle can't be solved
-          // console.log("lastFirst", lastFirst);
         } else if (index === 82) {
-          // console.log("the final response is:", res);
-          return res
+          return res;
         } else {
           let splitted = res.split("");
           let column;
           let numRow = Math.ceil((index) / 9);
           let row = numberToString[numRow];
-          if ((index) % 9 === 0) {
-            column = 9
-          } else {
-            column = (index) % 9;
+          column = (index) % 9;
+          if (column === 0) {
+            column = 9;
           }
-          let value = splitted[index - 1]
-          // console.log("row: ", row, "column: ",  column , "splitted: ", splitted , "value: ", value);
+          let value = splitted[index - 1];
           if (value !== ".") {
-            // console.log("WE ARE TESTING A NUMBER")
+            // console.log("WE ARE TESTING A NUMBER");
             let inboard = rowResult(res, row, column, value).inboard;
             let rowAuth = rowResult(res, row, column, value).response;
             let columnAuth = columnResult(res, row, column, value).response;
             let regionAuth = regionResult(res, row, column, value).response;
             if (rowAuth && columnAuth && regionAuth || inboard) {
-              index++
+              index++;
               return puzzleRecursion(res, index, splitted);
             } else {
               return puzzleRecursion({ error: 'Puzzle cannot be solved' }, index, splitted)
@@ -233,16 +199,12 @@ class SudokuSolver {
               let regionAuth = regionResult(res, row, column, ele).response;
 
               if (rowAuth && columnAuth && regionAuth) {
-                // console.log("element: ", ele, "can replace a dot");
                 array.push(ele)
               }
               return array;
             }, []);
             if (fromAll[0]) {
               if (fromAll.length > 1) {
-                //find the option with that index
-                //if it is already there update its object
-                //if it's not there create a new object and push it to options
                 let isThere = options.some(it => it[0] == index)
                 if (!isThere) {
                   options.push([index, {
@@ -259,18 +221,16 @@ class SudokuSolver {
                 splitted[index - 1] = fromAll[0];
               }
               let joined = splitted.join('');
-              index++
+              index++;
               return puzzleRecursion(joined, index, splitted);
             } else {
               return puzzleRecursion({ error: 'Puzzle cannot be solved' }, index, splitted);
             }
           }
-          //at the end increment the index and return the current index
         }
       }
 
       let result = puzzleRecursion(puzzleString, 1, puzzleString.split(""));
-      // console.log("result from solver: ", result);
       return result
     } else {
       return this.validate(puzzleString)[1];
